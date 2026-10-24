@@ -22,6 +22,49 @@ async function connectToMongoDB() {
     try {
         await client.connect();
 
+        // Database
+        const db = client.db('new_zap_shift_db');
+
+        // Collections
+        const parcelsCollection = db.collection('parcels');
+
+        // :::::::::::::::::::::::::::::: - Parcel Related APIS - ::::::::::::::::::::::::::::::
+        // Get api
+        app.get('/', async (req, res) => {
+            try {
+            } catch (error) {}
+        });
+
+        // Post api
+        app.post('/parcels', async (req, res) => {
+            try {
+                const parcel = req.body;
+                parcel.createdAt = new Date();
+
+                const result = await parcelsCollection.insertOne(parcel);
+
+                if (!result.acknowledged || !result.insertedId) {
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to insert parcel into the database.',
+                    });
+                }
+
+                // Success
+                return res.status(201).json({
+                    success: true,
+                    message: 'Success! Your parcel has been created.',
+                    data: {
+                        insertedId: result.insertedId,
+                        acknowledged: result.acknowledged,
+                    },
+                });
+            } catch (error) {
+                console.error('Error saving parcel:', error);
+                res.status(500).send({ message: 'Internal Server Error', error: error.message });
+            }
+        });
+
         console.log('You successfully connected to MongoDB!');
         return client;
     } catch (err) {
